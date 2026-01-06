@@ -3,141 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cờ Lật P2P - Fix Connection</title>
+    <title>Cờ Lật P2P - Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --board-bg: #dcb35c; --line-color: #2c1e10; }
-        body { background-color: #f3f4f6; touch-action: manipulation; font-family: sans-serif; }
+        :root { --board-bg: #1e3a8a; --line-color: #3b82f6; }
+        body { background-color: #f8fafc; touch-action: manipulation; font-family: system-ui, -apple-system, sans-serif; }
         .goban {
-            background-color: var(--board-bg);
+            background-color: #2d5a27;
             display: grid;
-            grid-template-columns: repeat(19, 1fr);
+            grid-template-columns: repeat(8, 1fr);
             aspect-ratio: 1/1;
-            width: 100%; max-width: 500px; margin: 0 auto;
-            border: 2px solid var(--line-color);
+            width: 100%; max-width: 450px; margin: 0 auto;
+            border: 4px solid #1a3a16;
+            gap: 2px; padding: 2px;
         }
-        .cell { border: 0.1px solid rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; position: relative; }
-        .piece { width: 90%; height: 90%; border-radius: 50%; transition: transform 0.2s; }
-        .black { background: #000; box-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        .white { background: #fff; box-shadow: 1px 1px 2px rgba(0,0,0,0.2); border: 1px solid #ddd; }
-        .last-move::after { content: ''; width: 6px; height: 6px; background: #ff4444; border-radius: 50%; position: absolute; z-index: 10; }
+        .cell { background-color: #3a7a32; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+        .cell:active { background-color: #4a8a42; }
+        .piece { 
+            width: 85%; height: 85%; border-radius: 50%; 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .black { background: #1a1a1a; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 2px 4px 6px rgba(0,0,0,0.3); }
+        .white { background: #fdfdfd; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.1), 2px 4px 6px rgba(0,0,0,0.2); }
+        .last-move::after { content: ''; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; position: absolute; }
+        .valid-hint { width: 12px; height: 12px; background: rgba(255,255,255,0.2); border-radius: 50%; }
         .loading-dots:after { content: ' .'; animation: dots 1s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } }
     </style>
 </head>
 <body class="p-2 sm:p-4">
 
-    <div class="max-w-[500px] mx-auto bg-white p-4 rounded-3xl shadow-xl mb-4 border border-blue-50">
-        <div id="status" class="text-xs font-bold text-blue-500 mb-3 uppercase tracking-wider loading-dots">Đang khởi tạo máy chủ</div>
+    <div class="max-w-[450px] mx-auto bg-white p-4 rounded-3xl shadow-xl mb-4 border border-blue-50">
+        <div id="status" class="text-[10px] font-bold text-blue-500 mb-3 uppercase tracking-[0.2em] loading-dots text-center">Đang khởi tạo máy chủ</div>
         
         <div class="space-y-3">
-            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                <p class="text-[10px] text-gray-400 font-bold mb-1 uppercase">ID Của Bạn (Gửi cho bạn bè)</p>
-                <div class="flex items-center justify-between">
-                    <span id="display-id" class="font-mono font-bold text-gray-700 text-sm">----</span>
-                    <button onclick="copyId()" class="text-blue-600 font-bold text-xs bg-blue-50 px-3 py-1 rounded-lg active:scale-90 transition-transform">Sao chép</button>
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">ID của bạn</p>
+                    <span id="display-id" class="font-mono font-black text-blue-600 text-lg tracking-widest">----</span>
                 </div>
+                <button onclick="copyInviteLink()" class="bg-blue-600 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-90 transition-transform shadow-md">
+                    Gửi Link Mời
+                </button>
             </div>
 
             <div class="flex gap-2">
-                <input id="remote-id" type="text" placeholder="Dán ID bạn bè..." class="flex-1 border-2 border-gray-100 rounded-2xl px-4 py-2 text-sm outline-none focus:border-blue-400 transition-all">
-                <button id="connect-btn" class="bg-blue-600 text-white px-5 py-2 rounded-2xl text-sm font-bold active:scale-95 shadow-lg shadow-blue-200">Kết nối</button>
+                <input id="remote-id" type="text" maxlength="4" placeholder="Nhập 4 số bạn bè..." class="flex-1 border-2 border-gray-100 rounded-2xl px-4 py-2 text-sm outline-none focus:border-blue-400 text-center font-mono">
+                <button id="connect-btn" class="bg-slate-800 text-white px-5 py-2 rounded-2xl text-sm font-bold active:scale-95">Kết nối</button>
             </div>
         </div>
     </div>
 
-    <div class="max-w-[500px] mx-auto flex justify-between items-center mb-4 px-2">
-        <div class="flex gap-4">
-            <div class="flex items-center gap-2"><div class="w-5 h-5 rounded-full black"></div><span id="score-b" class="font-black text-xl">0</span></div>
-            <div class="flex items-center gap-2"><div class="w-5 h-5 rounded-full white"></div><span id="score-w" class="font-black text-xl">0</span></div>
+    <div class="max-w-[450px] mx-auto flex justify-between items-center mb-4 px-2">
+        <div class="flex gap-3">
+            <div class="flex flex-col items-center p-2 bg-white rounded-xl shadow-sm border border-gray-100 min-w-[60px]">
+                <div class="w-4 h-4 rounded-full black mb-1"></div>
+                <span id="score-b" class="font-black text-lg text-gray-800">2</span>
+            </div>
+            <div class="flex flex-col items-center p-2 bg-white rounded-xl shadow-sm border border-gray-100 min-w-[60px]">
+                <div class="w-4 h-4 rounded-full white mb-1 border border-gray-200"></div>
+                <span id="score-w" class="font-black text-lg text-gray-800">2</span>
+            </div>
         </div>
-        <div id="turn" class="bg-black text-white px-6 py-2 rounded-2xl text-xs font-bold uppercase shadow-md">Chờ kết nối</div>
+        <div id="turn" class="bg-blue-100 text-blue-700 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-wider shadow-sm">
+            Chờ kết nối...
+        </div>
     </div>
 
-    <div id="board" class="goban shadow-2xl rounded-sm"></div>
+    <div id="board" class="goban shadow-2xl rounded-xl"></div>
 
     <script>
-        const SIZE = 19;
+        const SIZE = 8;
         let board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
         let myRole = null, currentPlayer = 1, peer = null, conn = null, lastMove = null;
 
+        function generateShortId() {
+            return Math.floor(1000 + Math.random() * 9000).toString();
+        }
+
         function initPeer() {
-            // Sử dụng các máy chủ STUN của Google để xuyên thủng tường lửa di động
-            peer = new Peer({
-                config: {
-                    iceServers: [
-                        { urls: "stun:stun.l.google.com:19302" },
-                        { urls: "stun:stun1.l.google.com:19302" },
-                        { urls: "stun:stun2.l.google.com:19302" }
-                    ],
-                    sdpSemantics: 'unified-plan'
-                }
+            const shortId = generateShortId();
+            peer = new Peer(shortId, {
+                config: { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] }
             });
 
             peer.on('open', id => {
                 document.getElementById('display-id').innerText = id;
-                document.getElementById('status').innerText = "Sẵn sàng kết nối";
+                document.getElementById('status').innerText = "Sẵn sàng kết nối ✅";
                 document.getElementById('status').classList.remove('loading-dots');
+                checkAutoJoin();
             });
 
             peer.on('connection', c => {
                 if (conn) return c.close();
                 conn = c;
-                myRole = 1; // BLACK
+                myRole = 1; // Chủ phòng đi Đen
                 setupConnection();
-                alert("Bạn là quân ĐEN - Đi trước");
+                alert("Đã có người tham gia! Bạn là quân ĐEN - Đi trước");
             });
 
             peer.on('error', err => {
-                console.error(err);
-                if(err.type === 'browser-incompatible') alert("Trình duyệt không hỗ trợ WebRTC!");
-                else document.getElementById('status').innerText = "Lỗi: " + err.type;
+                if(err.type === 'id-taken') initPeer();
+                else console.error(err);
             });
         }
 
         document.getElementById('connect-btn').onclick = () => {
             const id = document.getElementById('remote-id').value.trim();
             if (!id) return;
-            conn = peer.connect(id, { reliable: true });
-            myRole = 2; // WHITE
-            setupConnection();
+            connectToPeer(id);
         };
+
+        function connectToPeer(id) {
+            conn = peer.connect(id, { reliable: true });
+            myRole = 2; // Người vào sau đi Trắng
+            setupConnection();
+        }
 
         function setupConnection() {
             conn.on('open', () => {
-                document.getElementById('status').innerText = "Đã kết nối trực tiếp ✅";
-                document.getElementById('status').className = "text-xs font-bold text-green-500 mb-3 uppercase";
+                document.getElementById('status').innerText = "TRẬN ĐẤU ĐANG DIỄN RA";
+                document.getElementById('status').className = "text-[10px] font-bold text-green-500 mb-3 uppercase text-center tracking-[0.2em]";
                 resetGame(false);
             });
-
             conn.on('data', data => {
-                if (data.type === 'move') handleMove(data.r, data.c, data.p);
+                if (data.type === 'move') applyMove(data.r, data.c, data.p);
                 if (data.type === 'reset') resetGame(false);
-            });
-
-            conn.on('close', () => {
-                alert("Mất kết nối với đối thủ!");
-                location.reload();
             });
         }
 
-        function handleMove(r, c, p) {
-            if (board[r][c] !== 0) return;
+        function getValidMoves(p) {
+            let moves = [];
+            for(let r=0; r<SIZE; r++) {
+                for(let c=0; c<SIZE; c++) {
+                    if(canPlace(r, c, p)) moves.push({r, c});
+                }
+            }
+            return moves;
+        }
+
+        function canPlace(r, c, p) {
+            if (board[r][c] !== 0) return false;
+            const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+            return dirs.some(([dr, dc]) => checkDirection(r, c, dr, dc, p));
+        }
+
+        function checkDirection(r, c, dr, dc, p) {
+            let cr = r + dr, cc = c + dc;
+            let foundOpponent = false;
+            while (cr >= 0 && cr < SIZE && cc >= 0 && cc < SIZE) {
+                if (board[cr][cc] === 0) return false;
+                if (board[cr][cc] === (3 - p)) foundOpponent = true;
+                else return foundOpponent;
+                cr += dr; cc += dc;
+            }
+            return false;
+        }
+
+        function applyMove(r, c, p) {
             board[r][c] = p;
-            lastMove = {r, c};
             const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
             dirs.forEach(([dr, dc]) => {
-                let temp = [], cr = r+dr, cc = c+dc;
-                while(cr>=0 && cr<SIZE && cc>=0 && cc<SIZE && board[cr][cc] === (3-p)) {
-                    temp.push({r:cr, c:cc});
-                    cr+=dr; cc+=dc;
-                }
-                if(cr>=0 && cr<SIZE && cc>=0 && cc<SIZE && board[cr][cc] === p) {
-                    temp.forEach(pos => board[pos.r][pos.c] = p);
+                if (checkDirection(r, c, dr, dc, p)) {
+                    let cr = r + dr, cc = c + dc;
+                    while (board[cr][cc] === (3 - p)) {
+                        board[cr][cc] = p;
+                        cr += dr; cc += dc;
+                    }
                 }
             });
+            lastMove = {r, c};
             currentPlayer = 3 - p;
+            
+            // Kiểm tra nếu người chơi tiếp theo không có nước đi
+            if (getValidMoves(currentPlayer).length === 0) {
+                currentPlayer = 3 - currentPlayer;
+                if (getValidMoves(currentPlayer).length === 0) {
+                    alert("Trò chơi kết thúc!");
+                }
+            }
             render();
         }
 
@@ -145,21 +190,29 @@
             const boardEl = document.getElementById('board');
             boardEl.innerHTML = '';
             let b=0, w=0;
+            const validMoves = getValidMoves(myRole);
+
             for(let r=0; r<SIZE; r++) {
                 for(let c=0; c<SIZE; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    if(lastMove && lastMove.r === r && lastMove.c === c) cell.classList.add('last-move');
+                    if(lastMove?.r === r && lastMove?.c === c) cell.classList.add('last-move');
+                    
                     if(board[r][c] !== 0) {
                         const p = document.createElement('div');
                         p.className = `piece ${board[r][c] === 1 ? 'black' : 'white'}`;
                         cell.appendChild(p);
                         board[r][c] === 1 ? b++ : w++;
+                    } else if (currentPlayer === myRole && canPlace(r, c, myRole)) {
+                        const hint = document.createElement('div');
+                        hint.className = 'valid-hint';
+                        cell.appendChild(hint);
                     }
+
                     cell.onclick = () => {
-                        if (conn && conn.open && currentPlayer === myRole && board[r][c] === 0) {
+                        if (conn?.open && currentPlayer === myRole && canPlace(r, c, myRole)) {
                             conn.send({type: 'move', r, c, p: myRole});
-                            handleMove(r, c, myRole);
+                            applyMove(r, c, myRole);
                         }
                     };
                     boardEl.appendChild(cell);
@@ -169,25 +222,38 @@
             document.getElementById('score-w').innerText = w;
             const turnEl = document.getElementById('turn');
             turnEl.innerText = (currentPlayer === myRole ? "Lượt của bạn" : "Đợi đối thủ");
-            turnEl.style.backgroundColor = (currentPlayer === 1 ? "#000" : "#fff");
-            turnEl.style.color = (currentPlayer === 1 ? "#fff" : "#000");
-            turnEl.style.border = (currentPlayer === 2 ? "1px solid #000" : "none");
+            turnEl.className = currentPlayer === myRole 
+                ? "bg-green-500 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase shadow-lg scale-105 transition-transform" 
+                : "bg-slate-200 text-slate-500 px-6 py-3 rounded-2xl text-xs font-black uppercase";
         }
 
         function resetGame(send = true) {
             board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
-            currentPlayer = 1;
-            lastMove = null;
+            const m = SIZE/2;
+            board[m-1][m-1] = 2; board[m][m] = 2;
+            board[m-1][m] = 1; board[m][m-1] = 1;
+            currentPlayer = 1; lastMove = null;
             if(send && conn) conn.send({type:'reset'});
             render();
         }
 
-        function copyId() {
+        function copyInviteLink() {
             const id = document.getElementById('display-id').innerText;
-            navigator.clipboard.writeText(id).then(() => alert("Đã copy ID!"));
+            const url = new URL(window.location.href);
+            url.searchParams.set('join', id);
+            navigator.clipboard.writeText(url.toString()).then(() => alert("Đã copy link mời! Hãy gửi cho bạn bè."));
         }
 
-        window.onload = () => { render(); initPeer(); };
+        function checkAutoJoin() {
+            const params = new URLSearchParams(window.location.search);
+            const joinId = params.get('join');
+            if (joinId && joinId !== document.getElementById('display-id').innerText) {
+                document.getElementById('remote-id').value = joinId;
+                setTimeout(() => connectToPeer(joinId), 500);
+            }
+        }
+
+        window.onload = () => { initPeer(); render(); };
     </script>
 </body>
 </html>
