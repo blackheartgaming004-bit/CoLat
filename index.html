@@ -24,25 +24,30 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1.5rem;
-            transition: transform 0.2s ease, background 0.2s ease;
-            touch-action: manipulation; /* Tối ưu cho cảm ứng Android */
-            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.2s ease;
+            cursor: pointer;
         }
 
-        /* Hiệu ứng khi nhấn (Active state) cho mobile */
-        .game-card:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.1);
+        .game-card:active { transform: scale(0.98); }
+
+        /* Modal Styles */
+        #mode-modal {
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+        
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        .game-icon {
-            filter: drop-shadow(0 0 15px rgba(255,255,255,0.1));
-            pointer-events: none; /* Tránh cản trở sự kiện click */
+        .btn-mode {
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
-        .btn-action {
-            pointer-events: none; /* Nút chỉ để trang trí, click ăn vào thẻ cha */
-        }
+        
+        .btn-mode:hover { background: rgba(255, 255, 255, 0.05); }
     </style>
 </head>
 <body>
@@ -52,49 +57,107 @@
             <h1 class="text-4xl font-black mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
                 CHỌN TRÒ CHƠI
             </h1>
-            <p class="text-slate-400 text-sm">Chạm vào một trò chơi để bắt đầu</p>
+            <p class="text-slate-400 text-sm">Chọn một trò chơi để bắt đầu</p>
         </header>
 
         <div class="space-y-6">
-            <!-- Thẻ Cờ Vua -->
-            <a href="CoVua.html" class="game-card p-6 flex items-center gap-6 shadow-xl block">
-    <div class="w-24 h-24 flex-shrink-0 bg-white/5 rounded-2xl p-3">
-        <img src="icon_co_vua.png" alt="Cờ Vua" class="game-icon w-full h-full object-contain">
-    </div>
-    <div class="flex-grow">
-        <h2 class="text-2xl font-bold">CỜ VUA</h2>
-        <p class="text-slate-400 text-xs mb-3">Western Chess</p>
-        <div class="bg-blue-600 px-4 py-1.5 rounded-lg text-xs font-bold inline-block">VÀO GAME</div>
-    </div>
-</a>
-            <!-- Thẻ Cờ Tướng -->
-            <div id="btn-xiangqi" class="game-card p-6 flex items-center gap-6 shadow-xl">
-                <div class="w-24 h-24 flex-shrink-0 bg-white/5 rounded-2xl p-3">
-                    <img src="icon_co_tuong.png" alt="Cờ Tướng" class="game-icon w-full h-full object-contain" 
-                         onerror="this.src='https://cdn-icons-png.flaticon.com/512/10046/10046808.png'">
+            <div onclick="showModeSelection('CoVua.html', 'CỜ VUA')" class="game-card p-6 flex items-center gap-6">
+                <div class="w-20 h-20 flex-shrink-0 bg-white/5 rounded-2xl p-3">
+                    <img src="images/icon_co_vua.png" alt="Cờ Vua" class="w-full h-full object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3133/3133310.png'">
+                </div>
+                <div class="flex-grow">
+                    <h2 class="text-2xl font-bold">CỜ VUA</h2>
+                    <p class="text-slate-400 text-xs">Western Chess</p>
+                </div>
+                <div class="text-blue-400">→</div>
+            </div>
+
+            <div onclick="showModeSelection('CoTuong.html', 'CỜ TƯỚNG')" class="game-card p-6 flex items-center gap-6">
+                <div class="w-20 h-20 flex-shrink-0 bg-white/5 rounded-2xl p-3">
+                    <img src="images/icon_co_tuong.png" alt="Cờ Tướng" class="w-full h-full object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/10046/10046808.png'">
                 </div>
                 <div class="flex-grow">
                     <h2 class="text-2xl font-bold">CỜ TƯỚNG</h2>
-                    <p class="text-slate-400 text-xs mb-3">Xiangqi</p>
-                    <div class="btn-action inline-block bg-emerald-600 px-4 py-1.5 rounded-lg text-xs font-bold">VÀO GAME</div>
+                    <p class="text-slate-400 text-xs">Xiangqi</p>
                 </div>
+                <div class="text-emerald-400">→</div>
             </div>
         </div>
+    </div>
 
-        <footer class="mt-12 text-center text-slate-500 text-[10px] uppercase tracking-widest">
-            Phiên bản di động v2.0
-        </footer>
+    <div id="mode-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black/60" onclick="closeModal()"></div>
+        
+        <div class="modal-content w-full max-w-sm rounded-3xl p-6 relative z-10 animate-in fade-in zoom-in duration-200">
+            <h3 id="modal-title" class="text-xl font-black mb-1 text-center text-white">CHỌN CHẾ ĐỘ</h3>
+            <p class="text-gray-400 text-[10px] text-center mb-6 uppercase tracking-widest">Vui lòng chọn cách chơi</p>
+            
+            <div class="space-y-3">
+                <button onclick="selectMode('offline')" class="btn-mode w-full flex items-center p-4 rounded-2xl bg-white/5 hover:bg-white/10">
+                    <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 mr-4">🏠</div>
+                    <div class="text-left">
+                        <div class="font-bold text-sm">Chơi Offline</div>
+                        <div class="text-[10px] text-gray-500">Hai người chơi trên 1 máy</div>
+                    </div>
+                </button>
+
+                <div class="relative py-2">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+                    <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-[#1e293b] px-2 text-gray-600 font-bold">Hoặc Trực Tuyến</span></div>
+                </div>
+
+                <div class="space-y-2">
+                    <input id="online-id" type="text" maxlength="4" placeholder="Nhập ID (4 số) để kết nối..." 
+                           class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-center font-mono tracking-widest text-white">
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="selectMode('create')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs shadow-lg shadow-blue-900/20">
+                            TẠO PHÒNG
+                        </button>
+                        <button onclick="selectMode('join')" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl text-xs">
+                            KẾT NỐI
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeModal()" class="mt-6 w-full text-gray-500 text-[10px] font-bold uppercase tracking-widest hover:text-white transition">Đóng</button>
+        </div>
     </div>
 
     <script>
-        // Hàm chuyển trang an toàn cho Android
-        function openGame(fileName) {
-            // Mã hóa tên tệp để xử lý dấu cách (vd: "Co Vua.html" -> "Co%20Vua.html")
-            const safePath = encodeURI(fileName);
-            window.location.href = safePath;
+        let currentTargetFile = '';
+
+        function showModeSelection(fileName, gameName) {
+            currentTargetFile = fileName;
+            document.getElementById('modal-title').innerText = gameName;
+            const modal = document.getElementById('mode-modal');
+            modal.classList.remove('hidden');
         }
 
+        function closeModal() {
+            document.getElementById('mode-modal').classList.add('hidden');
+        }
+
+        function selectMode(mode) {
+            const idInput = document.getElementById('online-id').value.trim();
+            let url = currentTargetFile;
+
+            if (mode === 'offline') {
+                url += '?mode=offline';
+            } else if (mode === 'create') {
+                url += '?mode=online&action=create';
+            } else if (mode === 'join') {
+                if (!idInput || idInput.length < 4) {
+                    alert("Vui lòng nhập ID 4 số của đối thủ!");
+                    return;
+                }
+                url += `?mode=online&action=join&peerId=${idInput}`;
+            }
+
+            // Chuyển trang
+            window.location.href = url;
+        }
     </script>
 </body>
 </html>
-
