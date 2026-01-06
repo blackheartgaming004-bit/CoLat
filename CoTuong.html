@@ -56,6 +56,7 @@
     }
 
     .game-wrapper {
+        position: relative;
         width: 100%;
         max-width: 480px;
         display: flex;
@@ -160,6 +161,7 @@
         .last-move {
             background-color: rgba(255, 255, 0, 0.2) !important;
             border: 2px solid rgba(255, 255, 0, 0.5);
+            border-radius: 50%;
         }
         /* Xoay toàn bộ container bàn cờ */
         .flipped {
@@ -196,17 +198,44 @@
     </style>
     <!-- STYLE -->
     <style>
-    #online-status {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        z-index: 100;
-        font-size: 12px;
-        padding: 5px 10px;
-        border-radius: 20px;
-        background: rgba(0,0,0,0.7);
-        color: white;
-    }
+    #online-info {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 100;
+    margin: 0;
+    display: none; /* Sẽ được điều khiển bằng JS */
+}
+
+#online-info .glass-card {
+    background: rgba(0, 0, 0, 0.277);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0);
+    border-radius: 12px;
+    padding: 8px 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+#display-peer-id {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 10px;
+    font-weight: 800;
+    text-align: center;
+    color: #00eeee; /* Màu xanh neon cho nổi bật */
+    letter-spacing: 1px;
+    margin-left: 7px;
+}
+
+.id-label {
+    font-size: 10px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 1px;
+}
     </style>
 </head>
 <body>
@@ -215,14 +244,15 @@
         <header class="text-center flex justify-between items-center px-2">
             <h1 class="text-xl font-bold text-gray-800">Cờ Tướng</h1>
             <div id="game-status" class="text-sm font-bold bg-white px-3 py-1 rounded-full shadow-sm text-red-600 border border-red-200">Lượt: Đỏ</div>
-            <div id="online-info" class="mb-4 text-center hidden">
-            <div class="bg-slate-800 p-3 rounded-lg border border-blue-500/50 inline-block">
-            <p class="text-xs text-slate-400 uppercase tracking-widest mb-1">Mã Phòng (ID)</p>
-            <p id="display-peer-id" class="text-3xl font-mono font-black text-blue-400">....</p>
+        </header>
+        <!-- ---------------------- -->
+       <div id="online-info" class="hidden">
+    <div class="glass-card">
+        <span class="id-label">Phòng:</span>
+        <span id="display-peer-id">....</span>
     </div>
 </div>
-        </header>
-
+<!-- -------------------------------- -->
         <div class="flex flex-col gap-1">
             <div class="flex justify-between items-center px-1">
                 <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quân Đen đã ăn:</span>
@@ -292,6 +322,22 @@
         </div>
     </div>
 
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-[250] flex items-center justify-center p-4">
+    <div class="bg-slate-800 p-6 rounded-xl shadow-2xl text-center max-w-sm w-full border border-slate-600">
+        <div class="mb-4 text-yellow-400">
+            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="浸4 4a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"></path>
+            </svg>
+        </div>
+        <h2 class="text-xl font-bold mb-2 text-white">Yêu cầu chơi lại</h2>
+        <p id="confirm-message" class="mb-6 text-slate-300 text-sm">Đối thủ muốn làm mới bàn cờ để bắt đầu ván mới. Bạn có đồng ý không?</p>
+        <div class="flex gap-3">
+            <button id="confirm-yes" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition">ĐỒNG Ý</button>
+            <button id="confirm-no" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-bold transition">TỪ CHỐI</button>
+        </div>
+    </div>
+</div>
     <script>
         const RED = 'red';
         const BLACK = 'black';
@@ -344,13 +390,14 @@ if (mode === 'online') {
 
     peer.on('open', (id) => {
         console.log('ID của bạn là: ' + id);
-        document.getElementById('display-peer-id').innerText = id;
+    // Hiển thị khung ID
+    document.getElementById('online-info').style.display = 'block'; 
+    document.getElementById('display-peer-id').innerText = id;
 
         if (action === 'create') {
             myColor = RED;
             // Thông báo cho người tạo phòng
             document.getElementById('waiting-msg').classList.remove('hidden'); // Hiện thông báo chờ
-            showAlert("Phòng Đã Tạo", "Mã phòng của bạn là: " + id + ". Hãy gửi mã này cho đối thủ.");
         } else if (action === 'join') {
             myColor = BLACK;
             render();
@@ -744,10 +791,14 @@ function performLogicalMove(fromR, fromC, toR, toC) {
         function closeAlert() { document.getElementById('alert-modal').classList.add('hidden'); }
 
         document.getElementById('reset-btn').onclick = () => {
-            if (isOnline && conn && conn.open) {
-                conn.send({ type: 'RESET' });
-            }
-    initGame();
+    if (isOnline && conn && conn.open) {
+        // Nếu là online, gửi yêu cầu chứ không reset ngay
+        conn.send({ type: 'REQUEST_RESET' });
+        showAlert("Đã gửi yêu cầu", "Đang chờ đối thủ đồng ý chơi lại...");
+    } else {
+        // Nếu là offline, reset bình thường
+        initGame();
+    }
     };
         window.onload = initGame;
     
@@ -773,11 +824,29 @@ function setupConnHandlers() {
         if (data.type === 'MOVE') {
             // Thực hiện nước đi từ đối thủ gửi tới
             executeMove(data.fromR, data.fromC, data.toR, data.toC);
-        } else if (data.type === 'RESET') {
-            initGame();
+        }
+        else if (data.type === 'REQUEST_RESET') {
+            // Khi nhận được yêu cầu, hiện Modal
+            showConfirmModal((agreed) => {
+                if (agreed) {
+                    conn.send({ type: 'RESPONSE_RESET', agreed: true });
+                    initGame(); //
+                    showAlert("Bắt đầu!", "Ván chơi đã được làm mới.");
+                } else {
+                    conn.send({ type: 'RESPONSE_RESET', agreed: false });
+                }
+            });
+        }
+        else if (data.type === 'RESPONSE_RESET') {
+            closeAlert(); //
+            if (data.agreed) {
+                initGame(); //
+                showAlert("Thành công", "Đối thủ đã chấp nhận. Ván mới bắt đầu!");
+            } else {
+                showAlert("Từ chối", "Đối thủ không đồng ý chơi lại lúc này.");
+            }
         }
     });
-
     conn.on('close', () => {
         showAlert("Mất kết nối", "Đối thủ đã rời phòng.");
     });
@@ -800,6 +869,24 @@ function setupConnHandlers() {
             }, 3000);
         }
     });
+}
+
+
+
+// Hàm hiển thị Modal xác nhận
+function showConfirmModal(callback) {
+    const modal = document.getElementById('confirm-modal');
+    modal.classList.remove('hidden');
+    
+    document.getElementById('confirm-yes').onclick = () => {
+        modal.classList.add('hidden');
+        callback(true);
+    };
+    
+    document.getElementById('confirm-no').onclick = () => {
+        modal.classList.add('hidden');
+        callback(false);
+    };
 }
     </script>
     <!--------------------------------------------------------->
