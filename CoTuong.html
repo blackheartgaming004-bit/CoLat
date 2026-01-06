@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cờ Tướng</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
     /* Đường dẫn đến file ảnh cục bộ của bạn */
-    --board-bg: url('background_cotuong_galaxy.jpg'); 
-    --line-color: #ffffff; /* Đổi màu đường kẻ sang trắng để dễ nhìn trên nền tối */
+    --board-bg: url('images/background_cotuong_galaxy.jpg'); 
+    --line-color: #676767; /* Đổi màu đường kẻ sang trắng để dễ nhìn trên nền tối */
     --red-piece: #ff4d4d;
     --black-piece: #00eeee; /* Đổi màu quân đen sang xanh neon nếu nền quá tối */
-}
-
-.board-container {
+    }
+    .board-container {
     position: relative;
     width: 100%;
     aspect-ratio: 9 / 10;
@@ -28,56 +28,56 @@
     grid-template-columns: repeat(9, 11.11%);
     grid-template-rows: repeat(10, 10%);
     user-select: none;
-}
+    }
 
 /* Sửa màu đường kẻ trong SVG */
-.board-svg g {
+    .board-svg g {
     stroke: var(--line-color) !important;
     stroke-opacity: 0.8;
-}
+    }
 
 /* Sửa màu chữ SỞ HÀ - HÁN GIỚI để nổi bật trên nền ảnh */
-.board-svg text {
+    .board-svg text {
     fill: #fff !important;
-}
+    }
 
 
-        body {
-            background-color: #0f172a; /* Nền ngoài tối màu */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: manipulation;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 10px;
-            color: white;
-        }
+    body {
+        background-color: #0f172a; /* Nền ngoài tối màu */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        touch-action: manipulation;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 10px;
+        color: white;
+    }
 
-        .game-wrapper {
-            width: 100%;
-            max-width: 480px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    .game-wrapper {
+        width: 100%;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-        .board-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 10;
-    /* Sử dụng biến đã khai báo ở :root hoặc chèn trực tiếp link ảnh tại đây */
-    background-image: var(--board-bg); 
-    background-size: cover;
-    background-position: center;
-    border: 4px solid #334155;
-    box-shadow: 0 0 30px rgba(0,0,0,0.5);
-    display: grid;
-    grid-template-columns: repeat(9, 11.11%);
-    grid-template-rows: repeat(10, 10%);
-    user-select: none;
-}
+    .board-container {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 9 / 10;
+        /* Sử dụng biến đã khai báo ở :root hoặc chèn trực tiếp link ảnh tại đây */
+        background-image: var(--board-bg); 
+        background-size: cover;
+        background-position: center;
+        border: 4px solid #334155;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        display: grid;
+        grid-template-columns: repeat(9, 11.11%);
+        grid-template-rows: repeat(10, 10%);
+        user-select: none;
+    }
 
         /* Làm mờ nhẹ lớp nền để quân cờ nổi bật hơn */
         .board-container::before {
@@ -119,10 +119,18 @@
             font-weight: bold;
             font-size: 1.25rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-            transition: all 0.2s;
-            position: relative;
             z-index: 20;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            position: absolute; /* Quan trọng để tính toán vị trí theo tọa độ */
+            will-change: transform, left, top;
         }
+
+        .piece.moving {
+            z-index: 100;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+
 
         .piece.red { color: var(--red-piece); border-color: var(--red-piece); box-shadow: 0 0 10px rgba(255,77,77,0.3); }
         .piece.black { color: var(--black-piece); border-color: var(--black-piece); box-shadow: 0 0 10px rgba(0,229,255,0.3); }
@@ -149,6 +157,40 @@
             justify-content: center;
             align-items: center;
         }
+        .last-move {
+            background-color: rgba(255, 255, 0, 0.2) !important;
+            border: 2px solid rgba(255, 255, 0, 0.5);
+        }
+        /* Xoay toàn bộ container bàn cờ */
+        .flipped {
+            transform: rotate(180deg);
+        }
+
+        /* Xoay ngược lại các quân cờ và text để chúng không bị ngược chữ */
+        .flipped .piece, 
+        .flipped .hint,
+        .flipped .board-svg text {
+            transform: rotate(180deg);
+        }
+
+        /* Hiệu ứng chuyển cảnh khi xoay */
+        .board-container {
+            transition: transform 0.6s ease-in-out;
+        }
+    </style>
+    <!-- STYLE -->
+    <style>
+    #online-status {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+    }
     </style>
 </head>
 <body>
@@ -157,6 +199,12 @@
         <header class="text-center flex justify-between items-center px-2">
             <h1 class="text-xl font-bold text-gray-800">Cờ Tướng</h1>
             <div id="game-status" class="text-sm font-bold bg-white px-3 py-1 rounded-full shadow-sm text-red-600 border border-red-200">Lượt: Đỏ</div>
+            <div id="online-info" class="mb-4 text-center hidden">
+            <div class="bg-slate-800 p-3 rounded-lg border border-blue-500/50 inline-block">
+            <p class="text-xs text-slate-400 uppercase tracking-widest mb-1">Mã Phòng (ID)</p>
+            <p id="display-peer-id" class="text-3xl font-mono font-black text-blue-400">....</p>
+    </div>
+</div>
         </header>
 
         <div class="flex flex-col gap-1">
@@ -242,6 +290,8 @@
         let selected = null;
         let hints = [];
         let captured = { red: [], black: [] };
+        let lastMove = null;
+    
 
         const boardEl = document.getElementById('board');
         const statusEl = document.getElementById('game-status');
@@ -250,6 +300,64 @@
         const redScoreEl = document.getElementById('red-score');
         const blackScoreEl = document.getElementById('black-score');
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode'); // 'online' hoặc 'offline'
+        const action = urlParams.get('action'); // 'create' hoặc 'join'
+        const remotePeerId = urlParams.get('peerId');
+
+        // --- BIẾN TOÀN CỤC BỔ SUNG ---
+let peer;
+let conn;
+let myColor = RED; // Mặc định là Red cho offline
+let isOnline = false;
+
+// --- KHỞI TẠO PEERJS ---
+if (mode === 'online') {
+    isOnline = true;
+    document.getElementById('online-info').classList.remove('hidden');
+
+    // Tạo ID ngẫu nhiên 4 chữ số từ 1000 đến 9999
+    const customId = Math.floor(1000 + Math.random() * 9000).toString();
+    
+    // Khởi tạo Peer với ID 4 chữ số
+    peer = new Peer(customId); 
+
+    peer.on('open', (id) => {
+        console.log('ID của bạn là: ' + id);
+        document.getElementById('display-peer-id').innerText = id;
+
+        if (action === 'create') {
+            myColor = RED;
+            // Thông báo cho người tạo phòng
+            showAlert("Phòng Đã Tạo", "Mã phòng của bạn là: " + id + ". Hãy gửi mã này cho đối thủ.");
+        } else if (action === 'join') {
+            myColor = BLACK;
+            render();
+            // Nếu nhấn Join mà chưa có ID, có thể dùng prompt để hỏi
+            const idToJoin = remotePeerId || prompt("Nhập mã phòng 4 chữ số:");
+            if (idToJoin) {
+                document.getElementById('display-peer-id').innerText = idToJoin;
+                connectToPeer(idToJoin);
+            }
+        }
+    });
+
+    // Lắng nghe kết nối (dành cho Host)
+    peer.on('connection', (connection) => {
+        conn = connection;
+        setupConnHandlers();
+        showAlert("Sẵn sàng!", "Đối thủ đã kết nối. Bạn cầm quân Đỏ đi trước.");
+    });
+
+    // Xử lý lỗi (ví dụ ID đã tồn tại)
+    peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+            alert("Mã phòng này đã bị trùng, vui lòng làm mới trang để lấy mã khác.");
+        } else {
+            console.error(err);
+        }
+    });
+}
         function initGame() {
             boardState = Array(10).fill(null).map(() => Array(9).fill(null));
             setupRow(0, BLACK, ['CHARIOT', 'HORSE', 'ELEPHANT', 'ADVISOR', 'KING', 'ADVISOR', 'ELEPHANT', 'HORSE', 'CHARIOT']);
@@ -281,20 +389,34 @@
         }
 
         function render() {
+            if (isOnline && myColor === BLACK) {
+                boardEl.classList.add('flipped');
+            } else {
+                boardEl.classList.remove('flipped');
+            }
             // Chỉ xóa các thẻ .cell, giữ lại SVG bàn cờ
             const oldCells = boardEl.querySelectorAll('.cell');
             oldCells.forEach(cell => cell.remove());
 
+        
             for (let r = 0; r < 10; r++) {
                 for (let c = 0; c < 9; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
+                    cell.dataset.r = r; // Lưu tọa độ vào dataset
+                    cell.dataset.c = c;
+                    cell.id = `cell-${r}-${c}`; // Gán ID để truy vấn nhanh
+
+                    if (lastMove && ((lastMove.fromR === r && lastMove.fromC === c) || (lastMove.toR === r && lastMove.toC === c))) {
+                        cell.classList.add('last-move');
+                    }
                     cell.onclick = () => handleCellClick(r, c);
                     const piece = boardState[r][c];
                     if (piece) {
                         const pEl = document.createElement('div');
                         pEl.className = `piece ${piece.color} ${selected && selected.r === r && selected.c === c ? 'selected' : ''}`;
                         pEl.innerText = PIECES[piece.type][piece.color];
+                        pEl.id = `piece-${r}-${c}`;
                         cell.appendChild(pEl);
                     }
                     if (hints.some(h => h.r === r && h.c === c)) {
@@ -330,20 +452,74 @@
         }
 
         function movePiece(fromR, fromC, toR, toC) {
+       // Nếu là online, chỉ cho phép đi khi tới lượt và đúng màu quân của mình
+            if (isOnline) {
+                if (boardState[fromR][fromC].color !== myColor) return;
+                if (turn !== myColor) return;
+
+                // Gửi nước đi sang cho đối thủ
+                if (conn && conn.open) {
+                conn.send({
+                   type: 'MOVE',
+                   fromR, fromC, toR, toC
+                    });
+                }
+            }
+            executeMove(fromR, fromC, toR, toC);
+        }   
+
+        function executeMove(fromR, fromC, toR, toC) {
+    const pieceEl = document.querySelector(`#cell-${fromR}-${fromC} .piece`);
+    const targetCell = document.getElementById(`cell-${toR}-${toC}`);
+
+    if (pieceEl && targetCell) {
+        // 1. Tính toán khoảng cách di chuyển
+        const fromRect = pieceEl.getBoundingClientRect();
+        const toRect = targetCell.getBoundingClientRect();
+        
+        const deltaX = toRect.left - fromRect.left;
+        const deltaY = toRect.top - fromRect.top;
+
+        // 2. Thêm hiệu ứng bay
+        pieceEl.classList.add('moving');
+        pieceEl.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+
+        // 3. Đợi animation kết thúc (0.4s) rồi mới cập nhật dữ liệu thực
+        setTimeout(() => {
             const mover = boardState[fromR][fromC];
             const target = boardState[toR][toC];
+            
             if (target) {
                 captured[target.color].push(target);
             }
+            
             boardState[toR][toC] = mover;
             boardState[fromR][fromC] = null;
+            
+            lastMove = { fromR, fromC, toR, toC };
             selected = null;
             hints = [];
             turn = (turn === RED ? BLACK : RED);
-            render();
+            
+            render(); // Vẽ lại toàn bộ bàn cờ sau khi đi xong
             checkGameState();
             updateStatus();
-        }
+        }, 400); 
+    } else {
+        // Trường hợp không tìm thấy phần tử (fallback)
+        performLogicalMove(fromR, fromC, toR, toC);
+    }
+}
+
+function performLogicalMove(fromR, fromC, toR, toC) {
+    const mover = boardState[fromR][fromC];
+    const target = boardState[toR][toC];
+    if (target) captured[target.color].push(target);
+    boardState[toR][toC] = mover;
+    boardState[fromR][fromC] = null;
+    turn = (turn === RED ? BLACK : RED);
+    render();
+}
 
         function getValidMoves(r, c, checkKingSafety = true) {
             const piece = boardState[r][c];
@@ -513,8 +689,42 @@
 
         function closeAlert() { document.getElementById('alert-modal').classList.add('hidden'); }
 
-        document.getElementById('reset-btn').onclick = initGame;
+        document.getElementById('reset-btn').onclick = () => {
+            if (isOnline && conn && conn.open) {
+                conn.send({ type: 'RESET' });
+            }
+    initGame();
+    };
         window.onload = initGame;
+    
+    function connectToPeer(id) {
+    conn = peer.connect(id);
+    setupConnHandlers();
+}
+
+function setupConnHandlers() {
+    conn.on('open', () => {
+        console.log("Đã kết nối với: " + conn.peer);
+        if (myColor === BLACK) {
+            showAlert("Đã kết nối!", "Bạn cầm quân Đen. Chờ đối thủ đi trước.");
+        }
+    });
+
+    conn.on('data', (data) => {
+        if (data.type === 'MOVE') {
+            // Thực hiện nước đi từ đối thủ gửi tới
+            executeMove(data.fromR, data.fromC, data.toR, data.toC);
+        } else if (data.type === 'RESET') {
+            initGame();
+        }
+    });
+
+    conn.on('close', () => {
+        showAlert("Mất kết nối", "Đối thủ đã rời phòng.");
+    });
+}
     </script>
+    <!--------------------------------------------------------->
+    
 </body>
 </html>
